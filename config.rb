@@ -56,13 +56,11 @@ module MySociety
                 store_environ[k] = v
             end
             ENV.clear()
-            ENV['MYSOCIETY_CONFIG_FILE_PATH'] = f
 
             buf = nil
             IO.popen(@php_path, "w+") do |child|
-                child.print('''<?php
-            $b = get_defined_constants();
-            require(getenv("MYSOCIETY_CONFIG_FILE_PATH"));
+                child.print("<?php $b = get_defined_constants(); require('#{f}');")
+				child.print('''
             $a = array_diff_assoc(get_defined_constants(), $b);
             print "start_of_options\n";
             foreach ($a as $k => $v) {
