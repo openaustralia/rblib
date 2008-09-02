@@ -34,12 +34,8 @@ module MySociety
             raise "unable to locate PHP binary, needed to read config file"
         end
 
-        # read_config(FILE) ->
-        # Read configuration from FILE, which should be the name of a PHP config
-        # file.  This is parsed by PHP, and any defines are extracted as config
-        # values. "OPTION_" is removed from any names beginning with that.
-        attr :php_path
-        def Config.read_config(f)
+		# Fork a process to the php interpreter
+		def Config.fork_php
             # We need to find the PHP binary.
             if @php_path.nil?
                 @php_path = find_php()
@@ -57,8 +53,26 @@ module MySociety
             end
             ENV.clear()
 
-            buf = nil
             IO.popen(@php_path, "w+") do |child|
+				yield child
+            end
+            ENV.clear()
+            ENV.update(store_environ)
+
+            # check that php exited successfully
+            if not $?.success?
+                raise "#{@php_path}: #{f}: failed status #{$?.to_s}"
+            end    
+		end
+		
+        # read_config(FILE) ->
+        # Read configuration from FILE, which should be the name of a PHP config
+        # file.  This is parsed by PHP, and any defines are extracted as config
+        # values. "OPTION_" is removed from any names beginning with that.
+        attr :php_path
+        def Config.read_config(f)
+            buf = nil
+			fork_php do |child|
                 child.print("<?php $b = get_defined_constants(); require('#{f}');")
 				child.print('''
             $a = array_diff_assoc(get_defined_constants(), $b);
@@ -85,13 +99,6 @@ module MySociety
 
                 # read remainder
                 buf = child.read()
-            end
-            ENV.clear()
-            ENV.update(store_environ)
-
-            # check that php exited successfully
-            if not $?.success?
-                raise "#{@php_path}: #{f}: failed status #{$?.to_s}"
             end
             
             # parse out config values
