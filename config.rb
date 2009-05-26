@@ -61,7 +61,7 @@ module MySociety
 
             # check that php exited successfully
             if not $?.success?
-                raise "#{@php_path}: #{f}: failed status #{$?.to_s}"
+                raise "#{@php_path}: failed status #{$?.to_s}"
             end    
 		end
 		
