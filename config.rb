@@ -26,7 +26,7 @@ module MySociety
             for dir in path.split(':') +
                 ['/usr/local/bin', '/usr/bin', '/software/bin', '/opt/bin', '/opt/php/bin']
                 for name in ['php4', 'php', 'php4-cgi', 'php-cgi']
-                    if File.exists?(File.join(dir, name))
+                    if File.exist?(File.join(dir, name))
                         return File.join(dir, name)
                     end
                 end
@@ -135,7 +135,7 @@ module MySociety
             if not filename
                 raise "Please call MySociety::Config.set_file to specify config file" 
             end
-            if not File.exists?(filename)
+            if not File.exist?(filename)
                 if @ignore_missing_file
                     return {"CONFIG_FILE_NAME" => filename + " (missing file)"}
                 else
