@@ -31,6 +31,12 @@ module MySociety
                     end
                 end
             end
+            %w(. .. ../twfy ../../twfy).each do |twfy|
+                if File.exist?("#{twfy}/mise.toml")
+                    php = `cd #{twfy} && mise which php 2>/dev/null`.chomp
+                    return php if !php.empty? && File.executable?(php)
+                end
+            end
             raise "unable to locate PHP binary, needed to read config file"
         end
 
